@@ -2,6 +2,7 @@ package br.edu.ifsp.scl.sdm.listacontatossdm.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,7 @@ import java.util.List;
 import br.edu.ifsp.scl.sdm.listacontatossdm.R;
 import br.edu.ifsp.scl.sdm.listacontatossdm.adapter.ListaContatosAdapter;
 import br.edu.ifsp.scl.sdm.listacontatossdm.model.Contato;
+import br.edu.ifsp.scl.sdm.listacontatossdm.util.Configuracoes;
 
 public class ListaContatosActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
 
@@ -41,6 +43,12 @@ public class ListaContatosActivity extends AppCompatActivity implements AdapterV
 
     //Adapter que preenche a ListView
     private ListaContatosAdapter listaContatosAdapter;
+
+    // Shared preferences usado para salvar configurações
+    private SharedPreferences sharedPreferences;
+    private final String CONFIGURACOES_SHARED_PREFERENCES = "CONFIGURACOES";
+    private final String TIPO_ARMAZENAMENTO_SHARED_PREFERENCES = "TIPO_ARMAZENAMENTO";
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,6 +74,27 @@ public class ListaContatosActivity extends AppCompatActivity implements AdapterV
         registerForContextMenu(listaContatosListView);
 
         listaContatosListView.setOnItemClickListener(this);
+
+        sharedPreferences = getSharedPreferences(CONFIGURACOES_SHARED_PREFERENCES, MODE_PRIVATE);
+
+        restauraConfiguracoes();
+    }
+
+    private void restauraConfiguracoes() {
+        int tipoArmazenamento = sharedPreferences.getInt(TIPO_ARMAZENAMENTO_SHARED_PREFERENCES, Configuracoes.ARMAZENAMENTO_INTERNO);
+        Configuracoes.getInstance().setTipoArmazenamento(tipoArmazenamento);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        salvaConfiguracoes();
+    }
+
+    private void salvaConfiguracoes() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(TIPO_ARMAZENAMENTO_SHARED_PREFERENCES,Configuracoes.getInstance().getTipoArmazenamento());
+        editor.commit();
     }
 
     private void preencheListaContatos(){
@@ -89,6 +118,8 @@ public class ListaContatosActivity extends AppCompatActivity implements AdapterV
         switch (item.getItemId()){
 
             case R.id.configuracaoMenuItem:
+                Intent configuracoesIntent = new Intent(this, ConfiguracoesActivity.class);
+                startActivity(configuracoesIntent);
                 return true;
             case R.id.novoContatoMenuItem:
                 //abrindo tela de novo contato
